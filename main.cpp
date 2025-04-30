@@ -4,7 +4,7 @@
 
 int main() {
 
-    Lexer lex{"+-"};
+    Lexer lex{"+- */"};
 
 
     Token token = lex.getToken();

@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include "token.h"
@@ -32,9 +33,20 @@ public:
         currChar = source[currPos];
     }
 
+    void abort(std::string message) {
+        std::cerr << "Lexing error." << message << '\n';
+        std::exit(1);
+    }
+
+    void skipWhitespaces() {
+        while (currChar == ' ' || currChar == '\t' || currChar == '\r') {
+            nextChar();
+        }
+    }
+
     // take a look 2 chars ahead
     char peek() {
-        if ((currPos + 1) > source.length()) {
+        if ((currPos + 1) >= source.length()) {
             return '\0';
         }
 
@@ -49,6 +61,7 @@ public:
     
 
     Token getToken() {
+        skipWhitespaces();
         Token token{};
         switch (currChar) {
             case '+':
@@ -71,7 +84,10 @@ public:
                 break;
             default:
                 //unknown
-                break;  
+                std::string fullMsg = "unknown message";
+                fullMsg.push_back(currChar);
+                abort(fullMsg) ;
+                break;
         }
 
         nextChar();
