@@ -4,10 +4,12 @@
 
 int main() {
 
-    Lexer lex{"LET foobar = 123"};
+    Lexer lex{"+-"};
 
-    while (lex.peek() != '\0') {
-        std::cout <<lex.getCurrChar()<<'\n';
-        lex.nextChar();
+
+    Token token = lex.getToken();
+    while (token.getKind() != ENDOFFILE) {
+        std::cout <<"KIND: "<< token.getKind() <<'\n';
+        token = lex.getToken();
     }
 }

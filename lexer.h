@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include "token.h"
+
 
 class Lexer {
 
@@ -44,5 +46,35 @@ public:
         return currChar;
     }
 
+    
 
+    Token getToken() {
+        Token token{};
+        switch (currChar) {
+            case '+':
+                token.setToken(std::string(1,currChar), PLUS);
+                break;
+            case '-':
+                token.setToken(std::string(1, currChar), MINUS);
+                break;
+            case '*':
+                token.setToken(std::string(1, currChar), ASTERISK);
+                break;
+            case '/':
+                token.setToken(std::string(1, currChar), SLASH);
+                break;
+            case '\n':
+                token.setToken(std::string(1, currChar), NEWLINE);
+                break;
+            case '\0':
+                token.setToken(std::string(1, currChar), ENDOFFILE);
+                break;
+            default:
+                //unknown
+                break;  
+        }
+
+        nextChar();
+        return token;
+    }
 };
