@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <ostream>
 #include <string>
 
@@ -36,33 +37,6 @@ enum TokenType {
 
 };
 
-
-class Token {
-private:
-    std::string mTokenText;
-    TokenType mTokenKind;
-
-public:
-    Token(std::string tokenText, TokenType tokenKind) 
-        :mTokenText{tokenText}, mTokenKind{tokenKind}
-    {
-
-    }
-
-    //setters
-    void setToken(std::string tText, TokenType tKind) {
-            mTokenText = tText;
-            mTokenKind = tKind;
-    }
-
-    //getters
-    TokenType getKind() {
-        return mTokenKind;
-    }
-    Token() {}
-
-};
-
 const std::string BASE_TOKENS[] = {
     "NEWLINE", // 0 
     "NUMBER",
@@ -97,6 +71,52 @@ const std::string OPERATOR_TOKENS[] = {
     "GT",       
     "GTEQ"      // 211
 };
+
+
+
+class Token {
+private:
+    std::string mTokenText;
+    TokenType mTokenKind;
+
+public:
+    static TokenType checkIfKeyword(std::string s) {
+
+        for (int i = LABEL; i != ENDWHILE; i++) {
+            TokenType type {static_cast<TokenType>(i)};
+            if (s == KEYWORD_TOKENS[type-LABEL]) {
+                return type;
+            }
+        }
+                   return TokenType::IDENT;
+    }
+
+    Token(std::string tokenText, TokenType tokenKind) 
+        :mTokenText{tokenText}, mTokenKind{tokenKind}
+    {
+
+    }
+
+    //setters
+    void setToken(std::string tText, TokenType tKind) {
+            mTokenText = tText;
+            mTokenKind = tKind;
+    }
+
+    //getters
+    TokenType getKind() {
+        return mTokenKind;
+    }
+
+    std::string getText() {
+        return mTokenText;
+    }
+    Token() {}
+
+    
+
+};
+
 
 std::ostream& operator<<(std::ostream& out, const TokenType type) {
     if (type == ENDOFFILE) {

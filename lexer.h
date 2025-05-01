@@ -1,8 +1,12 @@
+#include <cctype>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include "token.h"
 
+
+bool isDigit(char c);
+bool isAlnum(char c);
 
 class Lexer {
 
@@ -44,6 +48,14 @@ public:
         }
     }
 
+    void skipComment() {
+        if (currChar == '#') {
+            while (currChar != '\n') {
+                nextChar();
+            }
+        }
+    }
+
     // take a look 2 chars ahead
     char peek() {
         if ((currPos + 1) >= source.length()) {
@@ -62,6 +74,7 @@ public:
 
     Token getToken() {
         skipWhitespaces();
+        skipComment();
         Token token{};
         switch (currChar) {
             case '+':
@@ -82,7 +95,111 @@ public:
             case '\0':
                 token.setToken(std::string(1, currChar), ENDOFFILE);
                 break;
-            default:
+            case '=':
+                if (peek() == '=') {
+                    char lastChar = currChar; 
+                    nextChar();
+                    std::string tokenText;
+                    tokenText += lastChar;
+                    tokenText += currChar;
+                    token.setToken( tokenText, EQEQ);
+                    break;
+                }   
+                token.setToken(std::string(1, currChar) , EQ);
+                break;
+            case '<':
+                if (peek() == '=') {
+                    char lastChar = currChar;
+                    nextChar();
+                    std::string tokenText;
+                    tokenText += lastChar;
+                    tokenText += currChar;
+                    token.setToken(tokenText, LTEQ);
+                    break;
+                }
+                token.setToken(std::string(1, currChar), LT);
+                break;
+            case '>':
+                if (peek() == '=') {
+                    char lastChar = currChar;
+                    nextChar();
+                    std::string tokenText;
+                    tokenText += lastChar;
+                    tokenText += currChar;
+                    token.setToken(tokenText, GTEQ);
+                    break;
+                }
+                token.setToken(std::string(1, currChar), GT);
+                break;
+
+            case '!':
+                if (peek() == '=') {
+                    char lastChar = currChar;
+                    nextChar();
+                    std::string tokenText;
+                    tokenText += lastChar;
+                    tokenText += currChar;
+                    token.setToken(tokenText, NOTEQ);
+                    break;
+                } else {
+                    std::string fullMsg = " '!' not followed by '=' : ";
+                    fullMsg.push_back(currChar);
+                    abort(fullMsg) ;
+                    break;
+                }
+            case '\"' : {
+                nextChar();
+                int startIdx = currPos;
+                while (currChar != '\"') {
+                        if (currChar == '\r' || currChar == '\n' || currChar =='\t' || currChar == '\\' || currChar == '%') {
+                        abort("Invalid character in string");
+                        break;
+                    }
+                    nextChar();
+                }
+                token.setToken(source.substr(startIdx, currPos-startIdx), STRING);
+                break;
+            }
+
+                  
+          default:
+
+             
+
+                if (isDigit(currChar)) {
+                    int startIdx = currPos;
+
+                    while(isDigit(peek())) {
+                            nextChar();
+                    }
+                    if (peek() == '.') {
+                        nextChar();
+                        if (!isDigit(peek())) {
+                            abort("invalid decimal. no trailing number after decimal point");
+                            break;
+                        }
+                        while(isDigit(peek())) {
+                            nextChar();
+                        }
+                    }
+
+                    token.setToken(source.substr(startIdx, currPos-startIdx + 1), NUMBER);
+
+                    break;
+                }
+
+                if (isAlnum(currChar)) {
+                    int startIdx = currPos;
+
+                    while(isAlnum(peek())) {
+                        nextChar();
+                    }
+                    std::string text = source.substr(startIdx, currPos- startIdx + 1);
+                    TokenType type = Token::checkIfKeyword(text);
+                    token.setToken(text, type);
+                    break;
+                }
+
                 //unknown
                 std::string fullMsg = "unknown message";
                 fullMsg.push_back(currChar);
@@ -94,3 +211,12 @@ public:
         return token;
     }
 };
+
+bool isAlnum(char c) {
+    c = std::tolower(c);
+    return (c >= '0' && c<= '9') || ( c >='a' && c < 'z');
+}
+
+bool isDigit(char c) {
+    return c >= '0' && c <= '9';
+}
