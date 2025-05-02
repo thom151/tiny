@@ -1,3 +1,7 @@
+#ifndef LEXER_H
+#define LEXER_H
+
+
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
@@ -132,7 +136,20 @@ public:
                 token.setToken(std::string(1, currChar), GT);
                 break;
 
-            case '!':
+             case '\"' : {
+                nextChar();
+                int startIdx = currPos;
+                while (currChar != '\"') {
+                        if (currChar == '\r' || currChar == '\n' || currChar =='\t' || currChar == '\\' || currChar == '%') {
+                        abort("Invalid character in string");
+                        break;
+                    }
+                    nextChar();
+                }
+                token.setToken(source.substr(startIdx, currPos-startIdx), STRING);
+                break;
+            }
+             case '!':
                 if (peek() == '=') {
                     char lastChar = currChar;
                     nextChar();
@@ -147,19 +164,7 @@ public:
                     abort(fullMsg) ;
                     break;
                 }
-            case '\"' : {
-                nextChar();
-                int startIdx = currPos;
-                while (currChar != '\"') {
-                        if (currChar == '\r' || currChar == '\n' || currChar =='\t' || currChar == '\\' || currChar == '%') {
-                        abort("Invalid character in string");
-                        break;
-                    }
-                    nextChar();
-                }
-                token.setToken(source.substr(startIdx, currPos-startIdx), STRING);
-                break;
-            }
+
 
                   
           default:
@@ -220,3 +225,5 @@ bool isAlnum(char c) {
 bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
+
+#endif
