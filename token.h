@@ -1,3 +1,6 @@
+#ifndef TOKEN_H
+#define TOKEN_H
+
 #include <cstddef>
 #include <ostream>
 #include <string>
@@ -35,6 +38,8 @@ enum TokenType {
     GT = 210,
     GTEQ = 211,
 
+    //INVALID
+    INVALID = 400
 };
 
 const std::string BASE_TOKENS[] = {
@@ -72,7 +77,21 @@ const std::string OPERATOR_TOKENS[] = {
     "GTEQ"      // 211
 };
 
+std::string getKindName(TokenType kind) {
+    if (kind>= NEWLINE && kind <= STRING) {
+        return BASE_TOKENS[kind];
+    }
 
+    if (kind >= LABEL && kind <= ENDWHILE) {
+        return KEYWORD_TOKENS[kind-101];
+    }
+
+    if (kind >= EQ && kind <= GTEQ) {
+        return OPERATOR_TOKENS[kind - 201];
+    }
+
+    return  "INVALID";
+}
 
 class Token {
 private:
@@ -82,13 +101,13 @@ private:
 public:
     static TokenType checkIfKeyword(std::string s) {
 
-        for (int i = LABEL; i != ENDWHILE; i++) {
+        for (int i = LABEL; i != ENDWHILE + 1; ++i) {
             TokenType type {static_cast<TokenType>(i)};
             if (s == KEYWORD_TOKENS[type-LABEL]) {
                 return type;
             }
         }
-                   return TokenType::IDENT;
+        return TokenType::IDENT;
     }
 
     Token(std::string tokenText, TokenType tokenKind) 
@@ -133,3 +152,5 @@ std::ostream& operator<<(std::ostream& out, const TokenType type) {
 
     return out;
 }
+
+#endif
