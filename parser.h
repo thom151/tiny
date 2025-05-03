@@ -2,11 +2,16 @@
 #include "token.h"
 #include <cstdlib>
 #include <iostream>
+#include <set>
+#include <string>
 
 class Parser {
     Lexer mLexer; 
     Token mCurrToken{};
     Token mPeekToken{};
+    std::set<std::string> mSymbols{};
+    std::set<std::string> mLabelsDeclared{};
+    std::set<std::string> mLabelGotoed{};
 
 public:
 
@@ -38,7 +43,7 @@ public:
     }
 
     void abort(std::string message) {
-        std::cerr << "Parsing error" << message << '\n';
+        std::cerr << "Parsing error: " << message << '\n';
         std::exit(1);
     }
 
@@ -87,42 +92,123 @@ public:
             while(!checkToken(ENDWHILE)) {
                 statement();
             }
-
             match(ENDWHILE);
+
         } else if (checkToken(LABEL)) {
             std::cout<<"STATEMENT-LABEL\n";
-            nextToken();
+            nextToken(); 
+            //if label exsits, return error
+            if (mLabelsDeclared.find(mCurrToken.getText())!= mLabelsDeclared.end()) {
+                abort("label current exists" + mCurrToken.getText());
+            }
+
+            mLabelsDeclared.insert(mCurrToken.getText());
             match(IDENT);    
+
         } else if (checkToken(GOTO)) {
             std::cout<<"STATEMENT-GOTO\n";
-            nextToken();
+            //inset labels (currToken) in the mLabelsGotoed (can occur multiple times)
+            nextToken(); 
+            mLabelGotoed.insert(mCurrToken.getText());
             match(IDENT);    
+
         } else if (checkToken(LET)) {
             std::cout<<"STATEMENT-LET\n";
             nextToken();
+            //if currToken does not exist, insert
+            if (mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
+                    mSymbols.insert(mCurrToken.getText());
+            }
             match(IDENT);
             match(EQ);
             expression();
+
         } else if (checkToken(INPUT)) {
             std::cout<<"STATEMENT-INPUT\n";
             nextToken();
+            //if currToken does not exist, insert
+            if (mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
+                    mSymbols.insert(mCurrToken.getText());
+            }
             match(IDENT);   
         } else {
-            abort("invalid statement at" + getKindName(mCurrToken.getKind()));
+            abort("invalid statement at " + mCurrToken.getText());
         }
-
-
-
-
         nl();
     }
 
     void expression() {
+        std::cout<<"EXPRESSION\n";
+        term(); // 1
+        while(checkToken(PLUS) ||checkToken( MINUS)) {
+            nextToken();
+            term();
+        }
+        
         return;
+    }
+
+    void term() {
+        std::cout<<"TERM\n";
+        unary(); 
+
+        while (checkToken(ASTERISK) || checkToken(SLASH)) {
+            nextToken();
+            unary(); // 2
+            
+        }
+    }
+
+    void unary() {
+        std::cout<<"UNARY\n"; 
+
+        if (checkToken(PLUS) || checkToken(MINUS)) {
+            nextToken();
+        }
+        primary(); 
+    }
+
+    void primary() {
+        std::cout<<"PRIMARY (" << mCurrToken.getText() << ")\n"; 
+
+        if (checkToken(NUMBER)) {
+            nextToken();
+        } else if (checkToken(IDENT)) {
+            if(mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
+                abort("variable has not been declared: " + mCurrToken.getText());
+            }
+    
+            nextToken();
+        } else {
+            abort("unexpected token" + mCurrToken.getText());
+        }
     }
     
     void comparison() {
+        std::cout<<"COMPARISON\n";
+        expression();
+
+        if (isComparisonOperator()) {
+            nextToken();
+            expression();
+        } else {
+            abort("expected comparison operator");
+        }
+
+        while (isComparisonOperator()) {
+            nextToken();
+            expression();
+        }
         return;
+    }
+
+    bool isComparisonOperator() {
+        return  checkToken(GT)   ||
+                checkToken(GTEQ) ||
+                checkToken(LT)   ||
+                checkToken(LTEQ) ||
+                checkToken(EQEQ) ||
+                checkToken(NOTEQ);
     }
 
     void nl() {

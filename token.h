@@ -101,13 +101,13 @@ private:
 public:
     static TokenType checkIfKeyword(std::string s) {
 
-        for (int i = LABEL; i != ENDWHILE; i++) {
+        for (int i = LABEL; i != ENDWHILE + 1; ++i) {
             TokenType type {static_cast<TokenType>(i)};
             if (s == KEYWORD_TOKENS[type-LABEL]) {
                 return type;
             }
         }
-                   return TokenType::IDENT;
+        return TokenType::IDENT;
     }
 
     Token(std::string tokenText, TokenType tokenKind) 
