@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     std::string line;
     if (file.is_open()) {
         while(std::getline(file, line)) {
-            source += line;
+            source += line + '\n';
         }
         file.close();
     } else {
