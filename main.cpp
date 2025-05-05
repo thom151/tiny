@@ -3,7 +3,7 @@
 #include <string>
 #include "lexer.h"
 #include "parser.h"
-
+#include "emitter.h"
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -32,9 +32,12 @@ int main(int argc, char *argv[]) {
     }
  
     Lexer lex{source};
-    Parser parser{lex};
+    Emitter emitter {"out.cpp"}; 
+    Parser parser{lex, &emitter};
 
     parser.program();
-    std::cout << "parsing completed\n";
+
+    emitter.writeFile();
+    std::cout << "compiled completed\n";
 
    }

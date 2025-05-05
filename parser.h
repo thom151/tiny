@@ -4,9 +4,11 @@
 #include <iostream>
 #include <set>
 #include <string>
+#include "emitter.h"
 
 class Parser {
-    Lexer mLexer; 
+    Lexer mLexer;
+    Emitter *mEmitter;
     Token mCurrToken{};
     Token mPeekToken{};
     std::set<std::string> mSymbols{};
@@ -15,8 +17,8 @@ class Parser {
 
 public:
 
-    Parser ( Lexer lexer)
-    : mLexer{lexer} {
+    Parser ( Lexer lexer, Emitter *emitter)
+    : mLexer{lexer}, mEmitter{emitter} {
             nextToken();
             nextToken();
     }
@@ -50,6 +52,8 @@ public:
 
     void program() {
         std::cout<<"PROGRAM\n";
+        mEmitter->headerLine("#include <iostream>");
+        mEmitter->headerLine("int main() {");
 
         while (checkToken(NEWLINE)) {
             nextToken();
@@ -58,6 +62,9 @@ public:
         while (!checkToken(ENDOFFILE)) {
             statement();
         }
+
+        mEmitter->emitLine("return 0;");
+        mEmitter->emitLine("}");
     }
 
     void statement() {
@@ -67,32 +74,49 @@ public:
         
 
             if (checkToken(STRING)) {
+                //here is the string token
+                std::string code = "std::cout<<\"" + mCurrToken.getText() + "\";";
+                mEmitter->emitLine(code);
                 nextToken();
-            } else {
+                // here is a different token 
+            } else {    
+                //this is a number expression is anumber
+                std::string code = "std::cout<<";
+                mEmitter->emit(code);
                  expression();
+                //close and then emit line
+                mEmitter->emitLine(";");
              }
         } else if (checkToken(IF)) {
             std::cout<<"STATEMENT-IF\n";
+            mEmitter->emit("if (");
             nextToken();//get the next token
             comparison();//make sure that the next token can be parsed by the comparison
             match(THEN);
             nl();
+            mEmitter->emitLine("){");
 
             while (!checkToken(ENDIF)){
                 statement();
             }
 
             match(ENDIF);
+
+            mEmitter->emit("}");
+
         } else if(checkToken(WHILE)) {
             std::cout<<"STATEMENT-WHILE\n";
+            mEmitter->emit("while(");
             nextToken();
             comparison();
             match(REPEAT);
             nl();
+            mEmitter->emitLine("){");
             while(!checkToken(ENDWHILE)) {
                 statement();
             }
             match(ENDWHILE);
+            mEmitter->emitLine("}");
 
         } else if (checkToken(LABEL)) {
             std::cout<<"STATEMENT-LABEL\n";
@@ -104,13 +128,14 @@ public:
 
             mLabelsDeclared.insert(mCurrToken.getText());
             match(IDENT);    
-
+            mEmitter->emitLine(mCurrToken.getText() + ":");
         } else if (checkToken(GOTO)) {
             std::cout<<"STATEMENT-GOTO\n";
             //inset labels (currToken) in the mLabelsGotoed (can occur multiple times)
             nextToken(); 
             mLabelGotoed.insert(mCurrToken.getText());
-            match(IDENT);    
+            match(IDENT);   
+            mEmitter->emitLine("goto " + mCurrToken.getText() + ";");
 
         } else if (checkToken(LET)) {
             std::cout<<"STATEMENT-LET\n";
@@ -118,10 +143,15 @@ public:
             //if currToken does not exist, insert
             if (mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
                     mSymbols.insert(mCurrToken.getText());
+                    mEmitter->headerLine("float " + mCurrToken.getText() + ";");
             }
+
+            mEmitter->emit(mCurrToken.getText() + "=");
             match(IDENT);
             match(EQ);
             expression();
+
+            mEmitter->emitLine(";");
 
         } else if (checkToken(INPUT)) {
             std::cout<<"STATEMENT-INPUT\n";
@@ -129,8 +159,11 @@ public:
             //if currToken does not exist, insert
             if (mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
                     mSymbols.insert(mCurrToken.getText());
+                    mEmitter->headerLine("float " + mCurrToken.getText() + ";");
             }
-            match(IDENT);   
+            mEmitter->emitLine("std::cin >> " + mCurrToken.getText() + ";");
+            match(IDENT);  
+
         } else {
             abort("invalid statement at " + mCurrToken.getText());
         }
@@ -141,6 +174,7 @@ public:
         std::cout<<"EXPRESSION\n";
         term(); // 1
         while(checkToken(PLUS) ||checkToken( MINUS)) {
+            mEmitter->emit(mCurrToken.getText());
             nextToken();
             term();
         }
@@ -153,6 +187,7 @@ public:
         unary(); 
 
         while (checkToken(ASTERISK) || checkToken(SLASH)) {
+            mEmitter->emit(mCurrToken.getText());
             nextToken();
             unary(); // 2
             
@@ -163,21 +198,24 @@ public:
         std::cout<<"UNARY\n"; 
 
         if (checkToken(PLUS) || checkToken(MINUS)) {
+            mEmitter->emit(mCurrToken.getText());
             nextToken();
         }
+
         primary(); 
     }
 
     void primary() {
         std::cout<<"PRIMARY (" << mCurrToken.getText() << ")\n"; 
-
+        
         if (checkToken(NUMBER)) {
+            mEmitter->emit(mCurrToken.getText());
             nextToken();
         } else if (checkToken(IDENT)) {
             if(mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
                 abort("variable has not been declared: " + mCurrToken.getText());
             }
-    
+            mEmitter->emit(mCurrToken.getText());
             nextToken();
         } else {
             abort("unexpected token" + mCurrToken.getText());
@@ -189,6 +227,9 @@ public:
         expression();
 
         if (isComparisonOperator()) {
+
+            //this just emits "<, > , = ,!= etc"
+            mEmitter->emit(mCurrToken.getText());
             nextToken();
             expression();
         } else {
@@ -196,6 +237,7 @@ public:
         }
 
         while (isComparisonOperator()) {
+            mEmitter->emit(mCurrToken.getText());
             nextToken();
             expression();
         }
