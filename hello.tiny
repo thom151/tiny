@@ -1,13 +1,25 @@
-PRINT "How many fibonacci numbers do you want?"
-INPUT nums
-PRINT ""
+PRINT "How many fibonacci numbers do you want? " 
+INPUT NUM nums
 
-LET a = 0
-LET b = 1
+PRINT "what's your name? "
+INPUT STR name
+
+
+LET NUM a = 0
+
+
+LET NUM b = 1
+LET NUM c = 0
 WHILE nums > 0 REPEAT
-    PRINT a
+    PRINT a 
     LET c = a + b
     LET a = b
     LET b = c
     LET nums = nums - 1
 ENDWHILE
+
+
+PRINT NL
+LET STR greet = "Hello "
+PRINT greet + name NL
+

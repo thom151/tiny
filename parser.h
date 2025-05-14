@@ -4,6 +4,7 @@
 #include <iostream>
 #include <set>
 #include <string>
+#include <algorithm>
 #include "emitter.h"
 
 class Parser {
@@ -14,6 +15,8 @@ class Parser {
     std::set<std::string> mSymbols{};
     std::set<std::string> mLabelsDeclared{};
     std::set<std::string> mLabelGotoed{};
+    std::set<std::string> mVarStrings{};
+    std::set<std::string> mVarNums{};
 
 public:
 
@@ -39,7 +42,7 @@ public:
 
     void match(TokenType kind) {
         if (!checkToken(kind)) {
-            abort("Expected" + getKindName(kind) + ", got" + getKindName(mCurrToken.getKind()));
+            abort("Expected " + getKindName(kind) + ", got " + getKindName(mCurrToken.getKind()));
         }
         nextToken();
     }
@@ -78,15 +81,34 @@ public:
                 std::string code = "std::cout<<\"" + mCurrToken.getText() + "\";";
                 mEmitter->emitLine(code);
                 nextToken();
-                // here is a different token 
-            } else {    
+
+                while (checkToken(NL)) {
+                    mEmitter->emitLine("std::cout<<\"\\n\";");
+                    nextToken();
+                }
+            } else if (checkToken(NL)) {
+                mEmitter->emitLine("std::cout<<\"\\n\";");
+                nextToken();
+                while (checkToken(NL)) {
+                     mEmitter->emitLine("std::cout<<\"\\n\";");
+                     nextToken();    
+                }
+            }else {    
                 //this is a number expression is anumber
                 std::string code = "std::cout<<";
                 mEmitter->emit(code);
                  expression();
                 //close and then emit line
                 mEmitter->emitLine(";");
+ 
              }
+
+            while (checkToken(NL)) {
+                mEmitter->emitLine("std::cout<<\"\\n\";");
+                nextToken();    
+            }
+    
+            
         } else if (checkToken(IF)) {
             std::cout<<"STATEMENT-IF\n";
             mEmitter->emit("if (");
@@ -104,6 +126,8 @@ public:
 
             mEmitter->emit("}");
 
+
+
         } else if(checkToken(WHILE)) {
             std::cout<<"STATEMENT-WHILE\n";
             mEmitter->emit("while(");
@@ -118,6 +142,8 @@ public:
             match(ENDWHILE);
             mEmitter->emitLine("}");
 
+
+
         } else if (checkToken(LABEL)) {
             std::cout<<"STATEMENT-LABEL\n";
             nextToken(); 
@@ -129,6 +155,9 @@ public:
             mLabelsDeclared.insert(mCurrToken.getText());
             match(IDENT);    
             mEmitter->emitLine(mCurrToken.getText() + ":");
+
+
+
         } else if (checkToken(GOTO)) {
             std::cout<<"STATEMENT-GOTO\n";
             //inset labels (currToken) in the mLabelsGotoed (can occur multiple times)
@@ -137,37 +166,98 @@ public:
             match(IDENT);   
             mEmitter->emitLine("goto " + mCurrToken.getText() + ";");
 
+
+
         } else if (checkToken(LET)) {
             std::cout<<"STATEMENT-LET\n";
             nextToken();
-            //if currToken does not exist, insert
-            if (mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
-                    mSymbols.insert(mCurrToken.getText());
+            
+            if (checkToken(STR)) {
+                nextToken();
+                if (mVarStrings.find(mCurrToken.getText()) == mVarStrings.end()) {
+                    std::cout<<"STR\n"; 
+                    mVarStrings.insert(mCurrToken.getText());
+    
+                    for (std::string strs : mVarStrings) {
+                        std::cout<<"VARIABLE: " <<strs<<'\n';
+                     }
+                    mEmitter->headerLine("std::string " + mCurrToken.getText() + ";");
+                }
+
+            } else if (checkToken(NUM)) {
+                nextToken();
+                std::cout<<"NUM\n";
+                if (mVarNums.find(mCurrToken.getText()) == mVarNums.end()) { 
+                    mVarNums.insert(mCurrToken.getText());
                     mEmitter->headerLine("float " + mCurrToken.getText() + ";");
+                }
+
             }
 
-            mEmitter->emit(mCurrToken.getText() + "=");
-            match(IDENT);
-            match(EQ);
-            expression();
 
-            mEmitter->emitLine(";");
+            //meaning it's trying to declare without using STR or NUM
+            if (mVarNums.find(mCurrToken.getText()) == mVarNums.end() &&
+                mVarStrings.find(mCurrToken.getText()) == mVarStrings.end()) {
+                abort("trying to declare a variable without type: " + mCurrToken.getText());
+            }
+
+            if (std::count(mVarNums.begin(), mVarNums.end(), mCurrToken.getText()) > 0) {
+                mEmitter->emit(mCurrToken.getText() + "=");
+                match(IDENT);
+                match(EQ);
+                expression();
+
+                mEmitter->emitLine(";");
+            } else if (std::count(mVarStrings.begin(), mVarStrings.end(), mCurrToken.getText()) > 0) {
+                mEmitter->emit(mCurrToken.getText() + "=");
+    
+                match(IDENT);
+                match(EQ);
+
+
+                if(checkToken(STRING)) {
+                    mEmitter->emitLine( "\"" + mCurrToken.getText() + "\";");
+                    nextToken();
+                } else {
+                    abort("expected a string at: " + mCurrToken.getText());
+                }
+            }
+            
 
         } else if (checkToken(INPUT)) {
             std::cout<<"STATEMENT-INPUT\n";
             nextToken();
-            //if currToken does not exist, insert
-            if (mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
-                    mSymbols.insert(mCurrToken.getText());
-                    mEmitter->headerLine("float " + mCurrToken.getText() + ";");
-            }
-            mEmitter->emitLine("std::cin >> " + mCurrToken.getText() + ";");
-            match(IDENT);  
 
-        } else {
-            abort("invalid statement at " + mCurrToken.getText());
-        }
-        nl();
+               if (checkToken(STR)) {
+                nextToken();
+                if (mVarStrings.find(mCurrToken.getText()) == mVarStrings.end()) {
+                    std::cout<<"STR\n"; 
+                    mVarStrings.insert(mCurrToken.getText());    
+                    mEmitter->headerLine("std::string " + mCurrToken.getText() + ";");
+                }
+
+                } else if (checkToken(NUM)) {
+                    nextToken();
+                    std::cout<<"NUM\n";
+                    if (mVarNums.find(mCurrToken.getText()) == mVarNums.end()) { 
+                        mVarNums.insert(mCurrToken.getText());
+                        mEmitter->headerLine("float " + mCurrToken.getText() + ";");
+                    }
+                }
+
+
+                //meaning it's trying to declare without using STR or NUM
+                if (mVarNums.find(mCurrToken.getText()) == mVarNums.end() &&
+                    mVarStrings.find(mCurrToken.getText()) == mVarStrings.end()) {
+                    abort("trying to declare a variable without type: " + mCurrToken.getText());
+                }
+
+                mEmitter->emitLine("std::cin >> " + mCurrToken.getText() + ";");
+                match(IDENT);  
+            } else {
+                abort("invalid statement at " + mCurrToken.getText());
+            }
+            nl();
     }
 
     void expression() {
@@ -212,7 +302,8 @@ public:
             mEmitter->emit(mCurrToken.getText());
             nextToken();
         } else if (checkToken(IDENT)) {
-            if(mSymbols.find(mCurrToken.getText()) == mSymbols.end()) {
+            if(mVarNums.find(mCurrToken.getText()) == mVarNums.end() &&
+                mVarStrings.find(mCurrToken.getText()) == mVarStrings.end()) {
                 abort("variable has not been declared: " + mCurrToken.getText());
             }
             mEmitter->emit(mCurrToken.getText());

@@ -168,7 +168,6 @@ public:
 
                   
           default:
-
              
 
                 if (isDigit(currChar)) {

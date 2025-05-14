@@ -25,6 +25,13 @@ enum TokenType {
     REPEAT = 110,
     ENDWHILE = 111,
 
+    //TYPE DEFINITION
+    STR = 112,
+    NUM = 113,
+
+    //PRINT NL
+    NL = 114,
+
     //OPERATORS
     EQ = 201,
     PLUS = 202,
@@ -40,6 +47,7 @@ enum TokenType {
 
     //INVALID
     INVALID = 400
+
 };
 
 const std::string BASE_TOKENS[] = {
@@ -60,7 +68,10 @@ const std::string KEYWORD_TOKENS[] = {
     "ENDIF",    
     "WHILE",    
     "REPEAT",   
-    "ENDWHILE"  // 111
+    "ENDWHILE",  // 111,
+    "STR", //112
+    "NUM", //113
+    "NL", //114
 };
 
 const std::string OPERATOR_TOKENS[] = {
@@ -82,7 +93,7 @@ std::string getKindName(TokenType kind) {
         return BASE_TOKENS[kind];
     }
 
-    if (kind >= LABEL && kind <= ENDWHILE) {
+    if (kind >= LABEL && kind <= NL) {
         return KEYWORD_TOKENS[kind-101];
     }
 
@@ -101,7 +112,7 @@ private:
 public:
     static TokenType checkIfKeyword(std::string s) {
 
-        for (int i = LABEL; i != ENDWHILE + 1; ++i) {
+        for (int i = LABEL; i != NL + 1; ++i) {
             TokenType type {static_cast<TokenType>(i)};
             if (s == KEYWORD_TOKENS[type-LABEL]) {
                 return type;
@@ -142,7 +153,7 @@ std::ostream& operator<<(std::ostream& out, const TokenType type) {
        out << "ENDOFFILE"; 
     } else if (type >= NEWLINE && type <= STRING) {
         out << BASE_TOKENS[type - 0];
-    } else if (type >= LABEL && type <= ENDWHILE) {
+    } else if (type >= LABEL && type <= NUM) {
         out <<  KEYWORD_TOKENS[type - 101];
     } else if (type >= EQ && type <= GTEQ) {
         out << OPERATOR_TOKENS[type-201];
