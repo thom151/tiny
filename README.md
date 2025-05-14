@@ -1,8 +1,8 @@
 # 🖥️ TINY42 Compiler
 
 ## 📖 **Description**  
-TINY42 Compiler is a C++-based compiler for the TINY42 programming language, a simple, procedural language designed for learning compiler design. It translates TINY42 source code into executable C++ code, supporting variables, input/output, loops, and arithmetic/string operations. This project demonstrates lexical analysis, parsing, and code generation.
----
+TINY42 Compiler is a C++-based compiler that compiles a dialect of the Tiny Programming language.Tiny42 programming language is a simple, procedural language designed for learning compiler design. Basically
+it translates TINY42 source code into executable c++ code, supporting variables, input/output, loops. arithmetic/string operations. This project demonstrates lexical analysis, parsing, and code generation.
 
 ## 💻 **Features**  
 - **Simple Syntax**: Write programs with intuitive commands like `PRINT`, `INPUT`, `LET`, and `WHILE`.  
@@ -64,7 +64,7 @@ Hello Alice
    ```
 2. Build the compiler:  
    ```bash
-   g++ -o main main.cpp
+   g++ -o tiny42 tiny42.cpp
    ```
 3. Write a TINY42 program in a `.tiny` file (e.g., `fibonacci.tiny`).  
 4. Compile the program:  
