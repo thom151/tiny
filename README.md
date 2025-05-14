@@ -1,15 +1,18 @@
 # 🖥️ TINY42 Compiler
 
-📖 **Description**  
+## 📖 **Description**  
 TINY42 Compiler is a C++-based compiler for the TINY42 programming language, a simple, procedural language designed for learning compiler design. It translates TINY42 source code into executable C++ code, supporting variables, input/output, loops, and arithmetic/string operations. This project demonstrates lexical analysis, parsing, and code generation.
+---
 
-💻 **Features**  
+## 💻 **Features**  
 - **Simple Syntax**: Write programs with intuitive commands like `PRINT`, `INPUT`, `LET`, and `WHILE`.  
 - **Variable Support**: Handles numeric (`NUM`) and string (`STR`) variables (e.g., `LET NUM a = 0`).  
 - **Input/Output**: Reads user input (`INPUT`) and displays output (`PRINT`) with newline support (`NL`).  
 - **Control Flow**: Iterates with `WHILE` loops (e.g., `WHILE nums > 0 REPEAT ... ENDWHILE`).  
 - **Operations**: Supports arithmetic (e.g., `a + b`) and string concatenation (e.g., `greet + name`).  
-- **Code Generation**: Outputs clean C++ code that can be compiled and run.  
+- **Code Generation**: Outputs clean C++ code that can be compiled and run.
+  
+---
 
 ### Example Program  
 Calculates Fibonacci numbers and greets the user:  
@@ -47,7 +50,7 @@ What's your name? Alice
 Hello Alice
 ```
 
-🚀 **How to Build and Run**  
+## 🚀 **How to Build and Run**  
 
 📄 **Prerequisites**  
 - C++11-compatible compiler (e.g., `g++`, Clang).  
@@ -61,11 +64,7 @@ Hello Alice
    ```
 2. Build the compiler:  
    ```bash
-   g++ -Wall -Wextra -std=c++11 -o tiny42 main.cpp
-   ```
-   Alternatively, if using a `Makefile`:  
-   ```bash
-   make
+   g++ -o main main.cpp
    ```
 3. Write a TINY42 program in a `.tiny` file (e.g., `fibonacci.tiny`).  
 4. Compile the program:  
@@ -86,7 +85,9 @@ Hello Alice
 🎥 **Example Output**  
 Input file (`fibonacci.tiny`) generates `out.cpp`, producing the Fibonacci sequence and a greeting (see example above).
 
-✍️ **Contributing**  
+---
+
+## ✍️ **Contributing**  
 - **Bug Reports**: Found an issue? Open an issue with steps to reproduce it.  
 - **Feature Requests**: Suggest new language features or compiler improvements via issues.  
 - **Code Contributions**:  
@@ -97,16 +98,16 @@ Input file (`fibonacci.tiny`) generates `out.cpp`, producing the Fibonacci seque
 - **Documentation**: Improve this README or add example programs.  
 - **Feedback**: Share ideas to enhance the compiler or language.  
 
-🤝 **Need Help?**  
+## 🤝 **Need Help?**  
 - Open an issue in the repository.  
 - Contact me at [thomassantos2003@gmail.com](mailto:thomassantos2003@gmail.com).  
 
-🙏 **Acknowledgments**  
+## 🙏 **Acknowledgments**  
 - Inspired by Austin Henley's [Teeny Tiny Compiler tutorial](https://austinhenley.com/blog/teenytinycompiler1.html).  
 - Thanks to the C++ community for robust tools and libraries.  
 - Special nod to the open-source community for sharing knowledge on lexical analysis and code generation.  
 
-📜 **License**  
+## 📜 **License**  
 This project is licensed under the MIT License. Feel free to use, modify, and distribute it as you wish.
 
 Enjoy compiling with TINY42! 🎉
